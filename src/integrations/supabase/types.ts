@@ -105,6 +105,7 @@ export type Database = {
           price: number
           qc_url: string | null
           quality: string
+          seller_id: string | null
           sizes: string[]
           title: string
           views: number
@@ -121,6 +122,7 @@ export type Database = {
           price?: number
           qc_url?: string | null
           quality?: string
+          seller_id?: string | null
           sizes?: string[]
           title: string
           views?: number
@@ -137,9 +139,60 @@ export type Database = {
           price?: number
           qc_url?: string | null
           quality?: string
+          seller_id?: string | null
           sizes?: string[]
           title?: string
           views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sellers: {
+        Row: {
+          active: boolean
+          banner_url: string | null
+          created_at: string
+          description: string
+          id: string
+          logo_url: string | null
+          name: string
+          password_hash: string
+          slug: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          active?: boolean
+          banner_url?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          password_hash?: string
+          slug: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          active?: boolean
+          banner_url?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          password_hash?: string
+          slug?: string
+          updated_at?: string
+          username?: string
         }
         Relationships: []
       }
