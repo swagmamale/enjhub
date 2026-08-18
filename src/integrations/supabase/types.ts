@@ -14,7 +14,144 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      agents: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          name: string
+          referral_url: string
+          sort_order: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          referral_url?: string
+          sort_order?: number
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          referral_url?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      guide_steps: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          image_url: string | null
+          step_number: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          step_number?: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          step_number?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          agent_links: Json
+          category: string
+          created_at: string
+          dislikes: number
+          id: string
+          image_url: string | null
+          likes: number
+          price: number
+          qc_url: string | null
+          quality: string
+          title: string
+          views: number
+        }
+        Insert: {
+          agent_links?: Json
+          category?: string
+          created_at?: string
+          dislikes?: number
+          id?: string
+          image_url?: string | null
+          likes?: number
+          price?: number
+          qc_url?: string | null
+          quality?: string
+          title: string
+          views?: number
+        }
+        Update: {
+          agent_links?: Json
+          category?: string
+          created_at?: string
+          dislikes?: number
+          id?: string
+          image_url?: string | null
+          likes?: number
+          price?: number
+          qc_url?: string | null
+          quality?: string
+          title?: string
+          views?: number
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          key: string
+          value: string
+        }
+        Insert: {
+          key: string
+          value?: string
+        }
+        Update: {
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
