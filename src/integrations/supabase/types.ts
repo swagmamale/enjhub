@@ -95,52 +95,67 @@ export type Database = {
       products: {
         Row: {
           agent_links: Json
+          batch: string
           category: string
           created_at: string
           dislikes: number
+          display_order: number
           id: string
           image_url: string | null
           images: string[]
           likes: number
           price: number
+          price_cny: number
+          promoted: boolean
           qc_url: string | null
           quality: string
           seller_id: string | null
           sizes: string[]
+          tiktok_url: string | null
           title: string
           views: number
         }
         Insert: {
           agent_links?: Json
+          batch?: string
           category?: string
           created_at?: string
           dislikes?: number
+          display_order?: number
           id?: string
           image_url?: string | null
           images?: string[]
           likes?: number
           price?: number
+          price_cny?: number
+          promoted?: boolean
           qc_url?: string | null
           quality?: string
           seller_id?: string | null
           sizes?: string[]
+          tiktok_url?: string | null
           title: string
           views?: number
         }
         Update: {
           agent_links?: Json
+          batch?: string
           category?: string
           created_at?: string
           dislikes?: number
+          display_order?: number
           id?: string
           image_url?: string | null
           images?: string[]
           likes?: number
           price?: number
+          price_cny?: number
+          promoted?: boolean
           qc_url?: string | null
           quality?: string
           seller_id?: string | null
           sizes?: string[]
+          tiktok_url?: string | null
           title?: string
           views?: number
         }
@@ -154,12 +169,43 @@ export type Database = {
           },
         ]
       }
+      promos: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          image_url: string | null
+          link_url: string
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          link_url?: string
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          link_url?: string
+          sort_order?: number
+          title?: string
+        }
+        Relationships: []
+      }
       sellers: {
         Row: {
           active: boolean
           banner_url: string | null
           created_at: string
           description: string
+          external_url: string
           id: string
           logo_url: string | null
           name: string
@@ -173,6 +219,7 @@ export type Database = {
           banner_url?: string | null
           created_at?: string
           description?: string
+          external_url?: string
           id?: string
           logo_url?: string | null
           name: string
@@ -186,6 +233,7 @@ export type Database = {
           banner_url?: string | null
           created_at?: string
           description?: string
+          external_url?: string
           id?: string
           logo_url?: string | null
           name?: string
@@ -208,6 +256,69 @@ export type Database = {
         Update: {
           key?: string
           value?: string
+        }
+        Relationships: []
+      }
+      shipping_rates: {
+        Row: {
+          agent_name: string
+          base_price: number
+          created_at: string
+          id: string
+          line_name: string
+          max_weight: number
+          min_weight: number
+          price_per_kg: number
+          sort_order: number
+        }
+        Insert: {
+          agent_name: string
+          base_price?: number
+          created_at?: string
+          id?: string
+          line_name?: string
+          max_weight?: number
+          min_weight?: number
+          price_per_kg?: number
+          sort_order?: number
+        }
+        Update: {
+          agent_name?: string
+          base_price?: number
+          created_at?: string
+          id?: string
+          line_name?: string
+          max_weight?: number
+          min_weight?: number
+          price_per_kg?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      social_links: {
+        Row: {
+          created_at: string
+          icon: string
+          id: string
+          label: string
+          sort_order: number
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string
+          id?: string
+          label: string
+          sort_order?: number
+          url?: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          url?: string
         }
         Relationships: []
       }
