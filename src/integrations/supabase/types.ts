@@ -100,10 +100,12 @@ export type Database = {
           dislikes: number
           id: string
           image_url: string | null
+          images: string[]
           likes: number
           price: number
           qc_url: string | null
           quality: string
+          sizes: string[]
           title: string
           views: number
         }
@@ -114,10 +116,12 @@ export type Database = {
           dislikes?: number
           id?: string
           image_url?: string | null
+          images?: string[]
           likes?: number
           price?: number
           qc_url?: string | null
           quality?: string
+          sizes?: string[]
           title: string
           views?: number
         }
@@ -128,10 +132,12 @@ export type Database = {
           dislikes?: number
           id?: string
           image_url?: string | null
+          images?: string[]
           likes?: number
           price?: number
           qc_url?: string | null
           quality?: string
+          sizes?: string[]
           title?: string
           views?: number
         }
