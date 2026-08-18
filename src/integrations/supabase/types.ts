@@ -111,6 +111,8 @@ export type Database = {
           quality: string
           seller_id: string | null
           sizes: string[]
+          store_name: string
+          store_url: string
           tiktok_url: string | null
           title: string
           views: number
@@ -133,6 +135,8 @@ export type Database = {
           quality?: string
           seller_id?: string | null
           sizes?: string[]
+          store_name?: string
+          store_url?: string
           tiktok_url?: string | null
           title: string
           views?: number
@@ -155,6 +159,8 @@ export type Database = {
           quality?: string
           seller_id?: string | null
           sizes?: string[]
+          store_name?: string
+          store_url?: string
           tiktok_url?: string | null
           title?: string
           views?: number
@@ -207,6 +213,7 @@ export type Database = {
           description: string
           external_url: string
           id: string
+          link_mode: string
           logo_url: string | null
           name: string
           password_hash: string
@@ -221,6 +228,7 @@ export type Database = {
           description?: string
           external_url?: string
           id?: string
+          link_mode?: string
           logo_url?: string | null
           name: string
           password_hash?: string
@@ -235,6 +243,7 @@ export type Database = {
           description?: string
           external_url?: string
           id?: string
+          link_mode?: string
           logo_url?: string | null
           name?: string
           password_hash?: string
@@ -269,6 +278,7 @@ export type Database = {
           max_weight: number
           min_weight: number
           price_per_kg: number
+          price_table: Json
           sort_order: number
         }
         Insert: {
@@ -280,6 +290,7 @@ export type Database = {
           max_weight?: number
           min_weight?: number
           price_per_kg?: number
+          price_table?: Json
           sort_order?: number
         }
         Update: {
@@ -291,6 +302,7 @@ export type Database = {
           max_weight?: number
           min_weight?: number
           price_per_kg?: number
+          price_table?: Json
           sort_order?: number
         }
         Relationships: []
@@ -300,6 +312,7 @@ export type Database = {
           created_at: string
           icon: string
           id: string
+          image_url: string | null
           label: string
           sort_order: number
           url: string
@@ -308,6 +321,7 @@ export type Database = {
           created_at?: string
           icon?: string
           id?: string
+          image_url?: string | null
           label: string
           sort_order?: number
           url?: string
@@ -316,6 +330,7 @@ export type Database = {
           created_at?: string
           icon?: string
           id?: string
+          image_url?: string | null
           label?: string
           sort_order?: number
           url?: string
