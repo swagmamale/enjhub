@@ -70,7 +70,12 @@ export type ShippingRate = {
   sort_order: number;
   /** Optional per-weight price map, e.g. { "0.5": 45, "1": 60, "1.5": 78 }. */
   price_table: Record<string, number>;
+  /** Zniżka kuponowa w procentach (0–100) — używana w trybie „z kuponami”. */
+  discount_percent: number;
+  /** Nazwa / kod kuponu pokazywany użytkownikowi. */
+  coupon_code: string;
 };
+
 
 /** Fixed conversion rates used across the catalog. */
 export const CNY_TO_PLN = 0.552421;
