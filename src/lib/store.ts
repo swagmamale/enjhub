@@ -401,11 +401,13 @@ export const useShippingRates = () =>
         min_weight: Number(r.min_weight),
         max_weight: Number(r.max_weight),
         price_table: (r.price_table ?? {}) as Record<string, number>,
+        discount_percent: Number(r.discount_percent ?? 0),
+        coupon_code: r.coupon_code ?? "",
       })) as ShippingRate[];
     },
   });
 
-/** Shipping cost for a weight, or null when the line does not cover that weight. */
+/** Cena bazowa (bez kuponu) dla danej wagi, lub null gdy linia nie obsługuje wagi. */
 export function shippingCost(rate: ShippingRate, kg: number): number | null {
   if (kg < rate.min_weight || kg > rate.max_weight) return null;
   const table = rate.price_table ?? {};
@@ -422,6 +424,15 @@ export function shippingCost(rate: ShippingRate, kg: number): number | null {
   }
   return rate.base_price + rate.price_per_kg * kg;
 }
+
+/** Cena po uwzględnieniu kuponu/zniżki przypisanej do linii wysyłkowej. */
+export function shippingCostWithCoupon(rate: ShippingRate, kg: number): number | null {
+  const base = shippingCost(rate, kg);
+  if (base === null) return null;
+  const pct = Math.min(100, Math.max(0, Number(rate.discount_percent) || 0));
+  return Math.round(base * (1 - pct / 100) * 100) / 100;
+}
+
 
 /** Dostępne wagi: 0.5 kg – 25 kg co pół kilograma. */
 export const WEIGHT_STEPS = Array.from({ length: 50 }, (_, i) => (i + 1) * 0.5);
