@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { PriceTags, QualityBadges } from "@/components/PriceTags";
 import { cnyFromPln, money, usdFromPln, type Agent, type Product } from "@/lib/store";
+import { useLang } from "@/lib/i18n";
 
 type SlotKey = "shoes" | "bottoms" | "tops" | "acc";
 
@@ -34,6 +35,7 @@ export function OutfitGenerator({
   agents: Agent[];
   onDetails?: (p: Product) => void;
 }) {
+  const { t } = useLang();
   const pools = useMemo(
     () => SLOTS.map((slot) => ({ slot, items: pickPool(products, slot) })),
     [products],
@@ -72,13 +74,14 @@ export function OutfitGenerator({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary">
-            Losowanie outfitów
+            {t("outfit.kicker")}
           </p>
           <h2 className="mt-1 text-2xl font-black">
-            Wylosuj <span className="text-gradient-brand">kompletny zestaw</span>
+            {t("outfit.title1")}{" "}
+            <span className="text-gradient-brand">{t("outfit.title2")}</span>
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Buty · Spodnie · Góra · Czapka / akcesoria — losowane z katalogu.
+            {t("outfit.desc")}
           </p>
         </div>
         <button
@@ -86,7 +89,7 @@ export function OutfitGenerator({
           disabled={spinning}
           className="rounded-xl gradient-brand px-6 py-3 text-sm font-extrabold uppercase tracking-wide text-surface-deep disabled:opacity-60"
         >
-          {spinning ? "Losowanie..." : hasResult ? "Losuj ponownie 🎲" : "Losuj outfit 🎲"}
+          {spinning ? t("outfit.rolling") : hasResult ? t("outfit.rollAgain") : t("outfit.roll")}
         </button>
       </div>
 
@@ -100,7 +103,7 @@ export function OutfitGenerator({
               className={`overflow-hidden rounded-2xl border bg-secondary/40 transition-all ${spinning ? "border-primary/60 opacity-80" : "border-border"}`}
             >
               <div className="border-b border-border px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-                {slot.label}
+                {t(`outfit.${slot.key}`, slot.label)}
               </div>
               <div className="aspect-square overflow-hidden bg-secondary">
                 {item?.image_url ? (
@@ -111,7 +114,7 @@ export function OutfitGenerator({
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center px-3 text-center text-[11px] text-muted-foreground">
-                    {empty ? "Brak produktów w tej kategorii" : "Kliknij Losuj"}
+                    {empty ? t("outfit.empty") : t("outfit.clickRoll")}
                   </div>
                 )}
               </div>
@@ -126,7 +129,7 @@ export function OutfitGenerator({
                         onClick={() => onDetails?.(item)}
                         className="flex-1 rounded-lg border border-border px-2 py-1.5 text-[11px] font-semibold text-muted-foreground hover:border-primary hover:text-primary"
                       >
-                        Podejrzyj
+                        {t("outfit.preview")}
                       </button>
                       <button
                         onClick={() => rollOne(slot.key)}
@@ -147,7 +150,7 @@ export function OutfitGenerator({
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-secondary/50 p-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-              Łączna cena zestawu
+              {t("outfit.total")}
             </p>
             <p className="font-display text-2xl font-black">{money(total)} PLN</p>
             <p className="text-xs text-muted-foreground">

@@ -272,7 +272,9 @@ export type Database = {
         Row: {
           agent_name: string
           base_price: number
+          coupon_code: string
           created_at: string
+          discount_percent: number
           id: string
           line_name: string
           max_weight: number
@@ -284,7 +286,9 @@ export type Database = {
         Insert: {
           agent_name: string
           base_price?: number
+          coupon_code?: string
           created_at?: string
+          discount_percent?: number
           id?: string
           line_name?: string
           max_weight?: number
@@ -296,7 +300,9 @@ export type Database = {
         Update: {
           agent_name?: string
           base_price?: number
+          coupon_code?: string
           created_at?: string
+          discount_percent?: number
           id?: string
           line_name?: string
           max_weight?: number

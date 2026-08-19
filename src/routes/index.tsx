@@ -1,10 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductModal } from "@/components/ProductModal";
 import { useAgents, useCategories, useProducts, type Product } from "@/lib/store";
 import { useLang } from "@/lib/i18n";
+
+/** Ile kafelków renderujemy w jednej porcji — reszta doładowuje się na żądanie. */
+const PAGE_SIZE = 48;
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -57,8 +61,19 @@ function Index() {
     );
   }, [all, q, cat, min, max]);
 
+  const [limit, setLimit] = useState(PAGE_SIZE);
+
+  // Każda zmiana filtrów zaczyna listę od pierwszej porcji.
+  useEffect(() => {
+    setLimit(PAGE_SIZE);
+  }, [q, cat, min, max]);
+
+  const visible = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
+  const remaining = filtered.length - visible.length;
+
   const inputCls =
     "w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:glow-ring";
+
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -165,12 +180,29 @@ function Index() {
           {t("finder.empty")}
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((p) => (
-            <ProductCard key={p.id} product={p} onDetails={setDetail} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {visible.map((p) => (
+              <ProductCard key={p.id} product={p} onDetails={setDetail} />
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-col items-center gap-2">
+            <p className="text-xs text-muted-foreground">
+              {visible.length} / {filtered.length}
+            </p>
+            {remaining > 0 ? (
+              <button
+                onClick={() => setLimit((l) => l + PAGE_SIZE)}
+                className="rounded-xl gradient-brand px-8 py-3 text-xs font-extrabold uppercase tracking-wide text-surface-deep transition-transform hover:-translate-y-0.5 hover:glow-ring-strong"
+              >
+                {t("finder.loadMore")} ({Math.min(PAGE_SIZE, remaining)})
+              </button>
+            ) : null}
+          </div>
+        </>
       )}
+
 
       {detail ? (
         <ProductModal product={detail} agents={agents ?? []} onClose={() => setDetail(null)} />

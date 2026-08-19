@@ -70,7 +70,12 @@ export type ShippingRate = {
   sort_order: number;
   /** Optional per-weight price map, e.g. { "0.5": 45, "1": 60, "1.5": 78 }. */
   price_table: Record<string, number>;
+  /** Zniżka kuponowa w procentach (0–100) — używana w trybie „z kuponami”. */
+  discount_percent: number;
+  /** Nazwa / kod kuponu pokazywany użytkownikowi. */
+  coupon_code: string;
 };
+
 
 /** Fixed conversion rates used across the catalog. */
 export const CNY_TO_PLN = 0.552421;
@@ -152,15 +157,28 @@ export async function uploadImages(files: File[], folder = "uploads"): Promise<s
 
 
 
+/** Klucz porównawczy nazwy agenta — usuwa różnice w wielkości liter i znakach. */
+const agentKey = (name: string) => name.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+
 export const useAgents = () =>
   useQuery({
     queryKey: ["agents"],
     queryFn: async () => {
       const { data, error } = await supabase.from("agents").select("*").order("sort_order");
       if (error) throw error;
-      return (data ?? []) as Agent[];
+      // Baza mogła zebrać duplikaty tego samego agenta — pokazujemy każdego raz.
+      const seen = new Set<string>();
+      const unique: Agent[] = [];
+      for (const a of (data ?? []) as Agent[]) {
+        const key = agentKey(a.name);
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        unique.push(a);
+      }
+      return unique;
     },
   });
+
 
 export const useCategories = () =>
   useQuery({
@@ -182,18 +200,27 @@ export const useProducts = () =>
         .order("display_order", { ascending: true })
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((p) => ({
-        ...p,
-        agent_links: (p.agent_links ?? {}) as Record<string, string>,
-        sizes: (p.sizes ?? []) as string[],
-        images: (p.images ?? []) as string[],
-        batch: p.batch ?? "",
-        display_order: p.display_order ?? 0,
-        price_cny: Number(p.price_cny ?? 0),
-        promoted: Boolean(p.promoted),
-        store_url: p.store_url ?? "",
-        store_name: p.store_name ?? "",
-      })) as Product[];
+      return (data ?? []).map((p) => {
+        const main = p.image_url ?? null;
+        // Galeria bywa zduplikowana (to samo zdjęcie kilka razy / kopia głównego).
+        const extra = Array.from(new Set(((p.images ?? []) as string[]).filter(Boolean))).filter(
+          (u) => u !== main,
+        );
+        return {
+          ...p,
+          image_url: main,
+          agent_links: (p.agent_links ?? {}) as Record<string, string>,
+          sizes: Array.from(new Set(((p.sizes ?? []) as string[]).filter(Boolean))),
+          images: extra,
+          batch: p.batch ?? "",
+          display_order: p.display_order ?? 0,
+          price_cny: Number(p.price_cny ?? 0),
+          promoted: Boolean(p.promoted),
+          store_url: p.store_url ?? "",
+          store_name: p.store_name ?? "",
+        };
+      }) as Product[];
+
     },
   });
 
@@ -374,11 +401,13 @@ export const useShippingRates = () =>
         min_weight: Number(r.min_weight),
         max_weight: Number(r.max_weight),
         price_table: (r.price_table ?? {}) as Record<string, number>,
+        discount_percent: Number(r.discount_percent ?? 0),
+        coupon_code: r.coupon_code ?? "",
       })) as ShippingRate[];
     },
   });
 
-/** Shipping cost for a weight, or null when the line does not cover that weight. */
+/** Cena bazowa (bez kuponu) dla danej wagi, lub null gdy linia nie obsługuje wagi. */
 export function shippingCost(rate: ShippingRate, kg: number): number | null {
   if (kg < rate.min_weight || kg > rate.max_weight) return null;
   const table = rate.price_table ?? {};
@@ -395,6 +424,15 @@ export function shippingCost(rate: ShippingRate, kg: number): number | null {
   }
   return rate.base_price + rate.price_per_kg * kg;
 }
+
+/** Cena po uwzględnieniu kuponu/zniżki przypisanej do linii wysyłkowej. */
+export function shippingCostWithCoupon(rate: ShippingRate, kg: number): number | null {
+  const base = shippingCost(rate, kg);
+  if (base === null) return null;
+  const pct = Math.min(100, Math.max(0, Number(rate.discount_percent) || 0));
+  return Math.round(base * (1 - pct / 100) * 100) / 100;
+}
+
 
 /** Dostępne wagi: 0.5 kg – 25 kg co pół kilograma. */
 export const WEIGHT_STEPS = Array.from({ length: 50 }, (_, i) => (i + 1) * 0.5);
