@@ -61,8 +61,19 @@ function Index() {
     );
   }, [all, q, cat, min, max]);
 
+  const [limit, setLimit] = useState(PAGE_SIZE);
+
+  // Każda zmiana filtrów zaczyna listę od pierwszej porcji.
+  useEffect(() => {
+    setLimit(PAGE_SIZE);
+  }, [q, cat, min, max]);
+
+  const visible = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
+  const remaining = filtered.length - visible.length;
+
   const inputCls =
     "w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:glow-ring";
+
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
