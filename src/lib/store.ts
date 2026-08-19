@@ -157,15 +157,28 @@ export async function uploadImages(files: File[], folder = "uploads"): Promise<s
 
 
 
+/** Klucz porównawczy nazwy agenta — usuwa różnice w wielkości liter i znakach. */
+const agentKey = (name: string) => name.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+
 export const useAgents = () =>
   useQuery({
     queryKey: ["agents"],
     queryFn: async () => {
       const { data, error } = await supabase.from("agents").select("*").order("sort_order");
       if (error) throw error;
-      return (data ?? []) as Agent[];
+      // Baza mogła zebrać duplikaty tego samego agenta — pokazujemy każdego raz.
+      const seen = new Set<string>();
+      const unique: Agent[] = [];
+      for (const a of (data ?? []) as Agent[]) {
+        const key = agentKey(a.name);
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        unique.push(a);
+      }
+      return unique;
     },
   });
+
 
 export const useCategories = () =>
   useQuery({
