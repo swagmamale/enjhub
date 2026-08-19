@@ -200,18 +200,27 @@ export const useProducts = () =>
         .order("display_order", { ascending: true })
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((p) => ({
-        ...p,
-        agent_links: (p.agent_links ?? {}) as Record<string, string>,
-        sizes: (p.sizes ?? []) as string[],
-        images: (p.images ?? []) as string[],
-        batch: p.batch ?? "",
-        display_order: p.display_order ?? 0,
-        price_cny: Number(p.price_cny ?? 0),
-        promoted: Boolean(p.promoted),
-        store_url: p.store_url ?? "",
-        store_name: p.store_name ?? "",
-      })) as Product[];
+      return (data ?? []).map((p) => {
+        const main = p.image_url ?? null;
+        // Galeria bywa zduplikowana (to samo zdjęcie kilka razy / kopia głównego).
+        const extra = Array.from(new Set(((p.images ?? []) as string[]).filter(Boolean))).filter(
+          (u) => u !== main,
+        );
+        return {
+          ...p,
+          image_url: main,
+          agent_links: (p.agent_links ?? {}) as Record<string, string>,
+          sizes: Array.from(new Set(((p.sizes ?? []) as string[]).filter(Boolean))),
+          images: extra,
+          batch: p.batch ?? "",
+          display_order: p.display_order ?? 0,
+          price_cny: Number(p.price_cny ?? 0),
+          promoted: Boolean(p.promoted),
+          store_url: p.store_url ?? "",
+          store_name: p.store_name ?? "",
+        };
+      }) as Product[];
+
     },
   });
 
