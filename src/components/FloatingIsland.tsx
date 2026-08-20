@@ -1,4 +1,4 @@
-import { useAgents, useSocialLinks } from "@/lib/store";
+import { useSocialLinks } from "@/lib/store";
 
 function IconLink({
   href,
@@ -24,16 +24,14 @@ function IconLink({
 }
 
 /**
- * Right-side dock. Everything here is admin-managed: add any link with either a
- * custom image or a short text icon in the panel (Branding → Social).
+ * Prawa wyspa z linkami social. Zawiera WYŁĄCZNIE linki dodane ręcznie
+ * w panelu (Branding → Socialne (dynamiczne)) — agenci nigdy nie trafiają tu automatycznie.
  */
 export function FloatingIsland() {
-  const { data: agents } = useAgents();
   const { data: socials } = useSocialLinks();
 
   const links = (socials ?? []).filter((l) => l.url);
-
-  if (!links.length && !(agents ?? []).length) return null;
+  if (!links.length) return null;
 
   return (
     <div className="fixed right-3 top-1/2 z-40 hidden -translate-y-1/2 flex-col gap-2 rounded-2xl border border-border bg-surface-deep/80 p-2 backdrop-blur-xl glow-ring sm:flex">
@@ -50,21 +48,6 @@ export function FloatingIsland() {
             <span className="text-xs font-bold">
               {l.icon || l.label.slice(0, 2).toUpperCase()}
             </span>
-          )}
-        </IconLink>
-      ))}
-      {links.length && (agents ?? []).length ? <div className="my-1 h-px bg-border" /> : null}
-      {(agents ?? []).map((a) => (
-        <IconLink key={a.id} href={a.referral_url} label={a.name}>
-          {a.avatar_url ? (
-            <img
-              src={a.avatar_url}
-              alt={a.name}
-              loading="lazy"
-              className="h-7 w-7 rounded-lg object-cover"
-            />
-          ) : (
-            <span className="text-xs font-bold">{a.name.slice(0, 2)}</span>
           )}
         </IconLink>
       ))}
