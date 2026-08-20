@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import {
   money,
   shippingCost,
+  shippingCostWithCoupon,
   useAgents,
   useShippingRates,
   usdFromPln,
@@ -16,18 +17,21 @@ export function HaulCalculator() {
   const { data: rates } = useShippingRates();
   const { data: agents } = useAgents();
   const [kg, setKg] = useState(2);
+  const [withCoupons, setWithCoupons] = useState(true);
 
   const avatarOf = (name: string) =>
     (agents ?? []).find((a) => a.name.toLowerCase() === name.toLowerCase())?.avatar_url ?? null;
 
   const results = useMemo(() => {
-    const list: { rate: ShippingRate; cost: number }[] = [];
+    const list: { rate: ShippingRate; cost: number; base: number }[] = [];
     for (const r of rates ?? []) {
-      const cost = shippingCost(r, kg);
-      if (cost !== null) list.push({ rate: r, cost });
+      const base = shippingCost(r, kg);
+      if (base === null) continue;
+      const cost = withCoupons ? (shippingCostWithCoupon(r, kg) ?? base) : base;
+      list.push({ rate: r, cost, base });
     }
     return list.sort((a, b) => a.cost - b.cost);
-  }, [rates, kg]);
+  }, [rates, kg, withCoupons]);
 
   const cheapest = results[0]?.cost ?? null;
   const pct = ((kg - MIN_KG) / (MAX_KG - MIN_KG)) * 100;
@@ -107,13 +111,35 @@ export function HaulCalculator() {
       </div>
 
 
+      <div className="mt-5 flex flex-wrap items-center gap-2">
+        <span className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+          Ceny:
+        </span>
+        {[
+          { on: true, label: "Z kuponami" },
+          { on: false, label: "Bez kuponów" },
+        ].map((opt) => (
+          <button
+            key={String(opt.on)}
+            onClick={() => setWithCoupons(opt.on)}
+            className={`rounded-lg border px-3 py-1.5 text-[11px] font-bold transition-all ${
+              withCoupons === opt.on
+                ? "border-primary text-primary glow-ring"
+                : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       {results.length === 0 ? (
         <p className="mt-5 rounded-xl border border-border bg-secondary/50 p-5 text-center text-xs text-muted-foreground">
           Brak zdefiniowanych stawek wysyłki dla tej wagi.
         </p>
       ) : (
         <ul className="mt-5 grid gap-2 sm:grid-cols-2">
-          {results.map(({ rate, cost }) => {
+          {results.map(({ rate, cost, base }) => {
             const best = cost === cheapest;
             const avatar = avatarOf(rate.agent_name);
             return (
@@ -144,7 +170,15 @@ export function HaulCalculator() {
                 </div>
                 <div className="shrink-0 text-right">
                   <p className="font-display text-base font-bold">{money(cost)} PLN</p>
+                  {withCoupons && cost < base ? (
+                    <p className="text-[11px] text-muted-foreground line-through">
+                      {money(base)} PLN
+                    </p>
+                  ) : null}
                   <p className="text-[11px] text-muted-foreground">≈ ${money(usdFromPln(cost))}</p>
+                  {withCoupons && rate.coupon_code ? (
+                    <p className="text-[11px] font-bold text-primary">kod {rate.coupon_code}</p>
+                  ) : null}
                 </div>
               </li>
             );
