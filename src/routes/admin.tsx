@@ -504,9 +504,10 @@ function ShippingTab() {
     max_weight: 25,
     sort_order: 0,
     price_table: {} as Record<string, number>,
+    discount_percent: 0,
+    coupon_code: "",
   };
   const [form, setForm] = useState<typeof empty & { id?: string }>(empty);
-  const [newAgent, setNewAgent] = useState({ name: "", avatar_url: "", referral_url: "" });
 
 
   const save = async () => {
@@ -552,45 +553,9 @@ function ShippingTab() {
               </button>
             ))}
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <input
-              className={input}
-              placeholder="Nowy agent — nazwa"
-              value={newAgent.name}
-              onChange={(e) => setNewAgent({ ...newAgent, name: e.target.value })}
-            />
-            <input
-              className={input}
-              placeholder="Zdjęcie profilowe URL"
-              value={newAgent.avatar_url}
-              onChange={(e) => setNewAgent({ ...newAgent, avatar_url: e.target.value })}
-            />
-          </div>
-          <div className="mt-2">
-            <ImageUploader
-              urls={newAgent.avatar_url ? [newAgent.avatar_url] : []}
-              multiple={false}
-              folder="agents"
-              label="Zdjęcie profilowe z urządzenia"
-              onChange={(u) => setNewAgent({ ...newAgent, avatar_url: u[0] ?? "" })}
-            />
-          </div>
-          <button
-            className={`${btn} mt-2`}
-            onClick={async () => {
-              if (!newAgent.name.trim()) return;
-              await supabase.from("agents").insert({
-                name: newAgent.name.trim(),
-                avatar_url: newAgent.avatar_url || null,
-                referral_url: newAgent.referral_url,
-              });
-              setForm({ ...form, agent_name: newAgent.name.trim() });
-              setNewAgent({ name: "", avatar_url: "", referral_url: "" });
-              await refresh("agents");
-            }}
-          >
-            Dodaj agenta
-          </button>
+          <p className="text-[11px] text-muted-foreground">
+            Agentów dodajesz i edytujesz w zakładce „Agenci”.
+          </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
@@ -647,6 +612,26 @@ function ShippingTab() {
               type="number"
               value={form.max_weight}
               onChange={(e) => setForm({ ...form, max_weight: Number(e.target.value) })}
+            />
+          </label>
+          <label className="text-xs font-semibold text-muted-foreground">
+            Zniżka / kupon (%)
+            <input
+              className={`${input} mt-1`}
+              type="number"
+              min={0}
+              max={100}
+              value={form.discount_percent}
+              onChange={(e) => setForm({ ...form, discount_percent: Number(e.target.value) })}
+            />
+          </label>
+          <label className="text-xs font-semibold text-muted-foreground">
+            Kod kuponu
+            <input
+              className={`${input} mt-1`}
+              placeholder="np. PKMR10"
+              value={form.coupon_code}
+              onChange={(e) => setForm({ ...form, coupon_code: e.target.value })}
             />
           </label>
         </div>
