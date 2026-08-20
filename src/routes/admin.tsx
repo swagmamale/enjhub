@@ -121,6 +121,7 @@ function AdminPage() {
   const tabs = [
     ["branding", "Branding"],
     ["promos", "Promocje"],
+    ["agents", "Agenci"],
     ["categories", "Kategorie"],
     ["products", "Produkty"],
     ["sellers", "Sprzedawcy"],
@@ -165,6 +166,7 @@ function AdminPage() {
 
       {tab === "branding" && <BrandingTab />}
       {tab === "promos" && <PromosTab />}
+      {tab === "agents" && <AgentsTab />}
       {tab === "categories" && <CategoriesTab />}
       {tab === "products" && <ProductsTab />}
       {tab === "sellers" && <SellersTab />}
@@ -182,11 +184,6 @@ const settingFields: [string, string][] = [
   ["primary_agent_url", "Główny link rejestracyjny"],
   ["promo_banner_url", "Baner promo (URL)"],
   ["promo_code", "Kod promocyjny"],
-  ["tiktok_url", "TikTok"],
-  ["discord_url", "Discord"],
-  ["telegram_url", "Telegram"],
-  ["whatsapp_url", "WhatsApp"],
-  ["instagram_url", "Instagram"],
 ];
 
 function BrandingTab() {
@@ -200,7 +197,11 @@ function BrandingTab() {
 
   return (
     <section className="rounded-2xl border border-border bg-surface p-6">
-      <h2 className="mb-4 text-lg font-bold">Branding i social</h2>
+      <h2 className="mb-4 text-lg font-bold">Branding</h2>
+      <p className="mb-4 text-xs text-muted-foreground">
+        Social media dodajesz wyłącznie poniżej w „Socialne (dynamiczne)” — nic nie pojawia się tam
+        automatycznie.
+      </p>
       <div className="grid gap-4 sm:grid-cols-2">
         {settingFields.map(([key, label]) => (
           <label key={key} className="text-xs font-semibold text-muted-foreground">
@@ -267,7 +268,7 @@ function SocialLinksManager() {
 
   return (
     <div className="mt-8 border-t border-border pt-6">
-      <h3 className="mb-1 text-base font-bold">Linki social (dynamiczne)</h3>
+      <h3 className="mb-1 text-base font-bold">Socialne (dynamiczne)</h3>
       <p className="mb-4 text-xs text-muted-foreground">
         Dodawaj, edytuj i usuwaj dowolne social media — pojawiają się na stronie i w pływającej
         wyspie.
@@ -485,7 +486,6 @@ function PromosTab() {
         </div>
       </div>
 
-      <AgentsTab />
     </section>
   );
 }
@@ -748,7 +748,7 @@ function ShippingTab() {
 }
 
 function AgentsTab() {
-  const { data: agents } = useAgents();
+  const { data: agents } = useAgentsRaw();
   const { data: settings } = useSettings();
   const refresh = useRefresh();
   const empty = { name: "", avatar_url: "", referral_url: "", sort_order: 0 };
@@ -763,6 +763,7 @@ function AgentsTab() {
     setForm(empty);
     setTemplate("");
     await refresh("agents");
+    await refresh("agents_raw");
     await refresh("settings");
   };
 
@@ -854,6 +855,7 @@ function AgentsTab() {
                 onClick={async () => {
                   await supabase.from("agents").delete().eq("id", a.id);
                   await refresh("agents");
+                  await refresh("agents_raw");
                 }}
               >
                 Usuń
