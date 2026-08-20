@@ -950,16 +950,41 @@ function ProductsTab() {
   const [scrapeMsg, setScrapeMsg] = useState("");
   const [cny, setCny] = useState("");
   const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [limit, setLimit] = useState(ADMIN_PAGE_SIZE);
+  // Optymistyczna kolejność — lista przestawia się natychmiast, zapis leci w tle.
+  const [orderIds, setOrderIds] = useState<string[] | null>(null);
+
+  const ordered = useMemo(() => {
+    const list = products ?? [];
+    if (!orderIds) return list;
+    const map = new Map(list.map((p) => [p.id, p]));
+    const out = orderIds.map((id) => map.get(id)).filter(Boolean) as Product[];
+    const seen = new Set(orderIds);
+    for (const p of list) if (!seen.has(p.id)) out.push(p);
+    return out;
+  }, [products, orderIds]);
 
   const q = search.trim().toLowerCase();
-  const visible = (products ?? []).filter((p) =>
-    q
-      ? [p.title, p.category, p.batch, p.store_name].some((v) =>
-          (v ?? "").toLowerCase().includes(q),
-        )
-      : true,
+  const matched = useMemo(
+    () =>
+      ordered.filter((p) =>
+        q
+          ? [p.title, p.category, p.batch, p.store_name].some((v) =>
+              (v ?? "").toLowerCase().includes(q),
+            )
+          : true,
+      ),
+    [ordered, q],
   );
+
+  useEffect(() => {
+    setLimit(ADMIN_PAGE_SIZE);
+  }, [q]);
+
+  const visible = matched.slice(0, limit);
+  const remaining = matched.length - visible.length;
 
 
 
@@ -979,22 +1004,29 @@ function ProductsTab() {
     return next;
   };
 
-  /** Przenieś przeciągany produkt na pozycję produktu docelowego i zapisz kolejność. */
+  /** Przenieś przeciągany produkt na pozycję docelową: najpierw UI, potem zapis. */
   const reorder = async (targetId: string) => {
-    const list = [...(products ?? [])];
+    const list = [...ordered];
     const from = list.findIndex((p) => p.id === dragId);
     const to = list.findIndex((p) => p.id === targetId);
+    setDragId(null);
+    setOverId(null);
     if (from < 0 || to < 0 || from === to) return;
     const [moved] = list.splice(from, 1);
     list.splice(to, 0, moved!);
-    setDragId(null);
-    await Promise.all(
-      list.map((p, i) => supabase.from("products").update({ display_order: i }).eq("id", p.id)),
-    );
+    setOrderIds(list.map((p) => p.id));
+
+    // Zapisujemy tylko wiersze, których pozycja faktycznie się zmieniła.
+    const lo = Math.min(from, to);
+    const hi = Math.max(from, to);
+    for (let i = lo; i <= hi; i++) {
+      const p = list[i]!;
+      if (p.display_order === i) continue;
+      await supabase.from("products").update({ display_order: i }).eq("id", p.id);
+    }
     await refresh("products");
+    setOrderIds(null);
   };
-
-
 
   const runScrape = async () => {
     setScrapeMsg("Pobieram dane...");
@@ -1341,15 +1373,29 @@ function ProductsTab() {
             <li
               key={p.id}
               draggable
-              onDragStart={() => setDragId(p.id)}
-              onDragOver={(e) => e.preventDefault()}
+              onDragStart={(e) => {
+                e.dataTransfer.effectAllowed = "move";
+                setDragId(p.id);
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                if (overId !== p.id) setOverId(p.id);
+              }}
               onDrop={(e) => {
                 e.preventDefault();
                 void reorder(p.id);
               }}
-              onDragEnd={() => setDragId(null)}
-              className={`flex cursor-grab items-center gap-3 rounded-lg border bg-secondary p-3 active:cursor-grabbing ${
-                dragId === p.id ? "border-primary opacity-60" : "border-border"
+              onDragEnd={() => {
+                setDragId(null);
+                setOverId(null);
+              }}
+              className={`flex cursor-grab items-center gap-3 rounded-lg border bg-secondary p-3 transition-[border-color,transform,opacity] duration-150 will-change-transform active:cursor-grabbing ${
+                dragId === p.id
+                  ? "scale-[0.99] border-primary opacity-50"
+                  : overId === p.id && dragId
+                    ? "border-primary translate-y-0.5"
+                    : "border-border"
               }`}
             >
               <span className="select-none text-base text-muted-foreground">⠿</span>
