@@ -91,13 +91,17 @@ export const scrapeProduct = createServerFn({ method: "POST" })
       "";
     const priceCny = ldPrice || Number(priceRaw) || 0;
 
-    const sizes = Array.from(
-      new Set(
-        Array.from(html.matchAll(/\b(XXS|XS|S|M|L|XL|XXL|XXXL|3XL|4XL)\b/g)).map(
-          (m) => m[1] as string,
-        ),
-      ),
-    ).slice(0, 12);
+    // Rozmiary odzieżowe (S/M/L) oraz liczbowe rozmiary butów / spodni (np. 40, 42.5).
+    const letterSizes = Array.from(html.matchAll(/\b(XXS|XS|S|M|L|XL|XXL|XXXL|3XL|4XL)\b/g)).map(
+      (m) => m[1] as string,
+    );
+    const numericSizes = Array.from(html.matchAll(/\b(\d{2}(?:\.5)?)\b/g))
+      .map((m) => m[1] as string)
+      .filter((v) => {
+        const n = Number(v);
+        return n >= 26 && n <= 50;
+      });
+    const sizes = Array.from(new Set([...letterSizes, ...numericSizes])).slice(0, 30);
 
     return { ok: true as const, title, images, priceCny, sizes };
   });
