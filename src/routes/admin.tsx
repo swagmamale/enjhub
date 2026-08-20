@@ -59,6 +59,8 @@ function AdminPage() {
   const [tab, setTab] = useState<
     | "branding"
     | "promos"
+    | "agents"
+
     | "categories"
     | "products"
     | "sellers"
