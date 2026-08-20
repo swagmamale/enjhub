@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { convertLink, extractSourceLink } from "@/lib/linkConverter";
 import { ProductCard } from "@/components/ProductCard";
 import { ImageUploader } from "@/components/ImageUploader";
 import { scrapeProduct } from "@/lib/scrape.functions";
@@ -966,6 +967,23 @@ function ProductsTab() {
   );
 
 
+
+  /** Zbuduj komplet linków agentów z dowolnego linku źródłowego / agenta. */
+  const buildAgentLinks = (
+    sourceRaw: string,
+    current: Record<string, string> = {},
+  ): Record<string, string> => {
+    const parsed = extractSourceLink(sourceRaw);
+    if (!parsed) return current;
+    const next = { ...current };
+    for (const a of agents ?? []) {
+      const tpl = settings?.[`converter_${a.name.trim().toLowerCase()}`];
+      const link = convertLink(parsed.url, a.name, tpl);
+      if (link && link !== parsed.url) next[a.name] = link;
+    }
+    return next;
+  };
+
   /** Przenieś przeciągany produkt na pozycję produktu docelowego i zapisz kolejność. */
   const reorder = async (targetId: string) => {
     const list = [...(products ?? [])];
@@ -998,6 +1016,7 @@ function ProductsTab() {
         images: f.images || res.images.slice(1).join(", "),
         sizes: f.sizes || res.sizes.join(", "),
         price: f.price || String(Math.round(plnFromCny(res.priceCny) * 100) / 100),
+        agent_links: buildAgentLinks(scrapeUrl, f.agent_links),
       }));
       setScrapeMsg("Dane pobrane — sprawdź i zapisz.");
     } catch {
@@ -1007,6 +1026,10 @@ function ProductsTab() {
 
   const save = async () => {
     if (!form.title) return;
+    // Uzupełnij brakujących agentów na podstawie dowolnego znanego linku produktu.
+    const source =
+      [form.store_url, ...Object.values(form.agent_links)].find((u) => extractSourceLink(u)) ?? "";
+    const agentLinks = source ? buildAgentLinks(source, form.agent_links) : form.agent_links;
     const payload = {
       title: form.title,
       category: form.category,
@@ -1027,7 +1050,7 @@ function ProductsTab() {
       views: Number(form.views) || 0,
       store_url: form.store_url,
       store_name: form.store_name,
-      agent_links: form.agent_links,
+      agent_links: agentLinks,
     };
     if (form.id) await supabase.from("products").update(payload).eq("id", form.id);
     else await supabase.from("products").insert(payload);
