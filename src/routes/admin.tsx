@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { convertLink, extractSourceLink } from "@/lib/linkConverter";
 import { ProductCard } from "@/components/ProductCard";
@@ -915,6 +915,9 @@ function CategoriesTab() {
   );
 }
 
+/** Ile produktów pokazujemy naraz na liście w panelu. */
+const ADMIN_PAGE_SIZE = 50;
+
 function ProductsTab() {
   const { data: products } = useProducts();
   const { data: categories } = useCategories();
@@ -1367,6 +1370,9 @@ function ProductsTab() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <p className="mb-3 text-xs text-muted-foreground">
+          Pokazano {visible.length} z {matched.length}
+        </p>
         <ul className="space-y-2">
           {visible.map((p) => (
 
