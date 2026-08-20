@@ -1478,7 +1478,16 @@ function ProductsTab() {
             </li>
           ))}
         </ul>
+        {remaining > 0 ? (
+          <button
+            className={`${btn} mt-4 w-full`}
+            onClick={() => setLimit((l) => l + ADMIN_PAGE_SIZE)}
+          >
+            Załaduj więcej ({Math.min(ADMIN_PAGE_SIZE, remaining)})
+          </button>
+        ) : null}
       </div>
+
     </section>
   );
 }
