@@ -390,15 +390,7 @@ function PromosTab() {
           kuponach + 40% zniżki przy rejestracji.
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Discord społeczności:{" "}
-          <a
-            className="text-primary"
-            href={settings?.["discord_url"] || "#"}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {settings?.["discord_url"] || "— ustaw w zakładce Branding —"}
-          </a>
+          Linki social ustawisz w zakładce Branding → „Socialne (dynamiczne)”.
         </p>
       </div>
 
@@ -925,6 +917,7 @@ function ProductsTab() {
   const { data: products } = useProducts();
   const { data: categories } = useCategories();
   const { data: agents } = useAgents();
+  const { data: settings } = useSettings();
   const { data: sellers } = useSellers();
   const refresh = useRefresh();
 
