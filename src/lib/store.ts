@@ -180,6 +180,17 @@ export const useAgents = () =>
   });
 
 
+/** Surowa lista agentów (z duplikatami) — tylko do zarządzania w panelu admina. */
+export const useAgentsRaw = () =>
+  useQuery({
+    queryKey: ["agents_raw"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("agents").select("*").order("sort_order");
+      if (error) throw error;
+      return (data ?? []) as Agent[];
+    },
+  });
+
 export const useCategories = () =>
   useQuery({
     queryKey: ["categories"],

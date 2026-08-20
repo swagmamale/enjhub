@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { convertLink, extractSourceLink } from "@/lib/linkConverter";
 import { ProductCard } from "@/components/ProductCard";
 import { ImageUploader } from "@/components/ImageUploader";
 import { scrapeProduct } from "@/lib/scrape.functions";
@@ -13,6 +14,7 @@ import {
   saveSetting,
   sha256Hex,
   useAgents,
+  useAgentsRaw,
   useCategories,
   useGuideSteps,
   useProducts,
@@ -57,6 +59,8 @@ function AdminPage() {
   const [tab, setTab] = useState<
     | "branding"
     | "promos"
+    | "agents"
+
     | "categories"
     | "products"
     | "sellers"
@@ -121,6 +125,7 @@ function AdminPage() {
   const tabs = [
     ["branding", "Branding"],
     ["promos", "Promocje"],
+    ["agents", "Agenci"],
     ["categories", "Kategorie"],
     ["products", "Produkty"],
     ["sellers", "Sprzedawcy"],
@@ -165,6 +170,7 @@ function AdminPage() {
 
       {tab === "branding" && <BrandingTab />}
       {tab === "promos" && <PromosTab />}
+      {tab === "agents" && <AgentsTab />}
       {tab === "categories" && <CategoriesTab />}
       {tab === "products" && <ProductsTab />}
       {tab === "sellers" && <SellersTab />}
@@ -182,11 +188,6 @@ const settingFields: [string, string][] = [
   ["primary_agent_url", "Główny link rejestracyjny"],
   ["promo_banner_url", "Baner promo (URL)"],
   ["promo_code", "Kod promocyjny"],
-  ["tiktok_url", "TikTok"],
-  ["discord_url", "Discord"],
-  ["telegram_url", "Telegram"],
-  ["whatsapp_url", "WhatsApp"],
-  ["instagram_url", "Instagram"],
 ];
 
 function BrandingTab() {
@@ -200,7 +201,11 @@ function BrandingTab() {
 
   return (
     <section className="rounded-2xl border border-border bg-surface p-6">
-      <h2 className="mb-4 text-lg font-bold">Branding i social</h2>
+      <h2 className="mb-4 text-lg font-bold">Branding</h2>
+      <p className="mb-4 text-xs text-muted-foreground">
+        Social media dodajesz wyłącznie poniżej w „Socialne (dynamiczne)” — nic nie pojawia się tam
+        automatycznie.
+      </p>
       <div className="grid gap-4 sm:grid-cols-2">
         {settingFields.map(([key, label]) => (
           <label key={key} className="text-xs font-semibold text-muted-foreground">
@@ -267,7 +272,7 @@ function SocialLinksManager() {
 
   return (
     <div className="mt-8 border-t border-border pt-6">
-      <h3 className="mb-1 text-base font-bold">Linki social (dynamiczne)</h3>
+      <h3 className="mb-1 text-base font-bold">Socialne (dynamiczne)</h3>
       <p className="mb-4 text-xs text-muted-foreground">
         Dodawaj, edytuj i usuwaj dowolne social media — pojawiają się na stronie i w pływającej
         wyspie.
@@ -387,15 +392,7 @@ function PromosTab() {
           kuponach + 40% zniżki przy rejestracji.
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Discord społeczności:{" "}
-          <a
-            className="text-primary"
-            href={settings?.["discord_url"] || "#"}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {settings?.["discord_url"] || "— ustaw w zakładce Branding —"}
-          </a>
+          Linki social ustawisz w zakładce Branding → „Socialne (dynamiczne)”.
         </p>
       </div>
 
@@ -485,7 +482,6 @@ function PromosTab() {
         </div>
       </div>
 
-      <AgentsTab />
     </section>
   );
 }
@@ -503,9 +499,10 @@ function ShippingTab() {
     max_weight: 25,
     sort_order: 0,
     price_table: {} as Record<string, number>,
+    discount_percent: 0,
+    coupon_code: "",
   };
   const [form, setForm] = useState<typeof empty & { id?: string }>(empty);
-  const [newAgent, setNewAgent] = useState({ name: "", avatar_url: "", referral_url: "" });
 
 
   const save = async () => {
@@ -551,45 +548,9 @@ function ShippingTab() {
               </button>
             ))}
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <input
-              className={input}
-              placeholder="Nowy agent — nazwa"
-              value={newAgent.name}
-              onChange={(e) => setNewAgent({ ...newAgent, name: e.target.value })}
-            />
-            <input
-              className={input}
-              placeholder="Zdjęcie profilowe URL"
-              value={newAgent.avatar_url}
-              onChange={(e) => setNewAgent({ ...newAgent, avatar_url: e.target.value })}
-            />
-          </div>
-          <div className="mt-2">
-            <ImageUploader
-              urls={newAgent.avatar_url ? [newAgent.avatar_url] : []}
-              multiple={false}
-              folder="agents"
-              label="Zdjęcie profilowe z urządzenia"
-              onChange={(u) => setNewAgent({ ...newAgent, avatar_url: u[0] ?? "" })}
-            />
-          </div>
-          <button
-            className={`${btn} mt-2`}
-            onClick={async () => {
-              if (!newAgent.name.trim()) return;
-              await supabase.from("agents").insert({
-                name: newAgent.name.trim(),
-                avatar_url: newAgent.avatar_url || null,
-                referral_url: newAgent.referral_url,
-              });
-              setForm({ ...form, agent_name: newAgent.name.trim() });
-              setNewAgent({ name: "", avatar_url: "", referral_url: "" });
-              await refresh("agents");
-            }}
-          >
-            Dodaj agenta
-          </button>
+          <p className="text-[11px] text-muted-foreground">
+            Agentów dodajesz i edytujesz w zakładce „Agenci”.
+          </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
@@ -646,6 +607,26 @@ function ShippingTab() {
               type="number"
               value={form.max_weight}
               onChange={(e) => setForm({ ...form, max_weight: Number(e.target.value) })}
+            />
+          </label>
+          <label className="text-xs font-semibold text-muted-foreground">
+            Zniżka / kupon (%)
+            <input
+              className={`${input} mt-1`}
+              type="number"
+              min={0}
+              max={100}
+              value={form.discount_percent}
+              onChange={(e) => setForm({ ...form, discount_percent: Number(e.target.value) })}
+            />
+          </label>
+          <label className="text-xs font-semibold text-muted-foreground">
+            Kod kuponu
+            <input
+              className={`${input} mt-1`}
+              placeholder="np. PKMR10"
+              value={form.coupon_code}
+              onChange={(e) => setForm({ ...form, coupon_code: e.target.value })}
             />
           </label>
         </div>
@@ -710,6 +691,8 @@ function ShippingTab() {
                 </p>
                 <p className="text-[11px] text-muted-foreground">
                   {r.base_price} PLN + {r.price_per_kg} PLN/kg · {r.min_weight}–{r.max_weight} kg
+                  {r.discount_percent ? ` · -${r.discount_percent}%` : ""}
+                  {r.coupon_code ? ` (${r.coupon_code})` : ""}
                 </p>
               </div>
               <button
@@ -725,6 +708,8 @@ function ShippingTab() {
                     max_weight: r.max_weight,
                     sort_order: r.sort_order,
                     price_table: r.price_table ?? {},
+                    discount_percent: r.discount_percent ?? 0,
+                    coupon_code: r.coupon_code ?? "",
                   })
                 }
               >
@@ -748,7 +733,7 @@ function ShippingTab() {
 }
 
 function AgentsTab() {
-  const { data: agents } = useAgents();
+  const { data: agents } = useAgentsRaw();
   const { data: settings } = useSettings();
   const refresh = useRefresh();
   const empty = { name: "", avatar_url: "", referral_url: "", sort_order: 0 };
@@ -763,6 +748,7 @@ function AgentsTab() {
     setForm(empty);
     setTemplate("");
     await refresh("agents");
+    await refresh("agents_raw");
     await refresh("settings");
   };
 
@@ -854,6 +840,7 @@ function AgentsTab() {
                 onClick={async () => {
                   await supabase.from("agents").delete().eq("id", a.id);
                   await refresh("agents");
+                  await refresh("agents_raw");
                 }}
               >
                 Usuń
@@ -928,10 +915,14 @@ function CategoriesTab() {
   );
 }
 
+/** Ile produktów pokazujemy naraz na liście w panelu. */
+const ADMIN_PAGE_SIZE = 50;
+
 function ProductsTab() {
   const { data: products } = useProducts();
   const { data: categories } = useCategories();
   const { data: agents } = useAgents();
+  const { data: settings } = useSettings();
   const { data: sellers } = useSellers();
   const refresh = useRefresh();
 
@@ -962,34 +953,83 @@ function ProductsTab() {
   const [scrapeMsg, setScrapeMsg] = useState("");
   const [cny, setCny] = useState("");
   const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [limit, setLimit] = useState(ADMIN_PAGE_SIZE);
+  // Optymistyczna kolejność — lista przestawia się natychmiast, zapis leci w tle.
+  const [orderIds, setOrderIds] = useState<string[] | null>(null);
+
+  const ordered = useMemo(() => {
+    const list = products ?? [];
+    if (!orderIds) return list;
+    const map = new Map(list.map((p) => [p.id, p]));
+    const out = orderIds.map((id) => map.get(id)).filter(Boolean) as Product[];
+    const seen = new Set(orderIds);
+    for (const p of list) if (!seen.has(p.id)) out.push(p);
+    return out;
+  }, [products, orderIds]);
 
   const q = search.trim().toLowerCase();
-  const visible = (products ?? []).filter((p) =>
-    q
-      ? [p.title, p.category, p.batch, p.store_name].some((v) =>
-          (v ?? "").toLowerCase().includes(q),
-        )
-      : true,
+  const matched = useMemo(
+    () =>
+      ordered.filter((p) =>
+        q
+          ? [p.title, p.category, p.batch, p.store_name].some((v) =>
+              (v ?? "").toLowerCase().includes(q),
+            )
+          : true,
+      ),
+    [ordered, q],
   );
 
+  useEffect(() => {
+    setLimit(ADMIN_PAGE_SIZE);
+  }, [q]);
 
-  /** Przenieś przeciągany produkt na pozycję produktu docelowego i zapisz kolejność. */
+  const visible = matched.slice(0, limit);
+  const remaining = matched.length - visible.length;
+
+
+
+  /** Zbuduj komplet linków agentów z dowolnego linku źródłowego / agenta. */
+  const buildAgentLinks = (
+    sourceRaw: string,
+    current: Record<string, string> = {},
+  ): Record<string, string> => {
+    const parsed = extractSourceLink(sourceRaw);
+    if (!parsed) return current;
+    const next = { ...current };
+    for (const a of agents ?? []) {
+      const tpl = settings?.[`converter_${a.name.trim().toLowerCase()}`];
+      const link = convertLink(parsed.url, a.name, tpl);
+      if (link && link !== parsed.url) next[a.name] = link;
+    }
+    return next;
+  };
+
+  /** Przenieś przeciągany produkt na pozycję docelową: najpierw UI, potem zapis. */
   const reorder = async (targetId: string) => {
-    const list = [...(products ?? [])];
+    const list = [...ordered];
     const from = list.findIndex((p) => p.id === dragId);
     const to = list.findIndex((p) => p.id === targetId);
+    setDragId(null);
+    setOverId(null);
     if (from < 0 || to < 0 || from === to) return;
     const [moved] = list.splice(from, 1);
     list.splice(to, 0, moved!);
-    setDragId(null);
-    await Promise.all(
-      list.map((p, i) => supabase.from("products").update({ display_order: i }).eq("id", p.id)),
-    );
+    setOrderIds(list.map((p) => p.id));
+
+    // Zapisujemy tylko wiersze, których pozycja faktycznie się zmieniła.
+    const lo = Math.min(from, to);
+    const hi = Math.max(from, to);
+    for (let i = lo; i <= hi; i++) {
+      const p = list[i]!;
+      if (p.display_order === i) continue;
+      await supabase.from("products").update({ display_order: i }).eq("id", p.id);
+    }
     await refresh("products");
+    setOrderIds(null);
   };
-
-
 
   const runScrape = async () => {
     setScrapeMsg("Pobieram dane...");
@@ -1006,6 +1046,7 @@ function ProductsTab() {
         images: f.images || res.images.slice(1).join(", "),
         sizes: f.sizes || res.sizes.join(", "),
         price: f.price || String(Math.round(plnFromCny(res.priceCny) * 100) / 100),
+        agent_links: buildAgentLinks(scrapeUrl, f.agent_links),
       }));
       setScrapeMsg("Dane pobrane — sprawdź i zapisz.");
     } catch {
@@ -1015,6 +1056,10 @@ function ProductsTab() {
 
   const save = async () => {
     if (!form.title) return;
+    // Uzupełnij brakujących agentów na podstawie dowolnego znanego linku produktu.
+    const source =
+      [form.store_url, ...Object.values(form.agent_links)].find((u) => extractSourceLink(u)) ?? "";
+    const agentLinks = source ? buildAgentLinks(source, form.agent_links) : form.agent_links;
     const payload = {
       title: form.title,
       category: form.category,
@@ -1035,7 +1080,7 @@ function ProductsTab() {
       views: Number(form.views) || 0,
       store_url: form.store_url,
       store_name: form.store_name,
-      agent_links: form.agent_links,
+      agent_links: agentLinks,
     };
     if (form.id) await supabase.from("products").update(payload).eq("id", form.id);
     else await supabase.from("products").insert(payload);
@@ -1325,21 +1370,38 @@ function ProductsTab() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <p className="mb-3 text-xs text-muted-foreground">
+          Pokazano {visible.length} z {matched.length}
+        </p>
         <ul className="space-y-2">
           {visible.map((p) => (
 
             <li
               key={p.id}
               draggable
-              onDragStart={() => setDragId(p.id)}
-              onDragOver={(e) => e.preventDefault()}
+              onDragStart={(e) => {
+                e.dataTransfer.effectAllowed = "move";
+                setDragId(p.id);
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                if (overId !== p.id) setOverId(p.id);
+              }}
               onDrop={(e) => {
                 e.preventDefault();
                 void reorder(p.id);
               }}
-              onDragEnd={() => setDragId(null)}
-              className={`flex cursor-grab items-center gap-3 rounded-lg border bg-secondary p-3 active:cursor-grabbing ${
-                dragId === p.id ? "border-primary opacity-60" : "border-border"
+              onDragEnd={() => {
+                setDragId(null);
+                setOverId(null);
+              }}
+              className={`flex cursor-grab items-center gap-3 rounded-lg border bg-secondary p-3 transition-[border-color,transform,opacity] duration-150 will-change-transform active:cursor-grabbing ${
+                dragId === p.id
+                  ? "scale-[0.99] border-primary opacity-50"
+                  : overId === p.id && dragId
+                    ? "border-primary translate-y-0.5"
+                    : "border-border"
               }`}
             >
               <span className="select-none text-base text-muted-foreground">⠿</span>
@@ -1416,7 +1478,16 @@ function ProductsTab() {
             </li>
           ))}
         </ul>
+        {remaining > 0 ? (
+          <button
+            className={`${btn} mt-4 w-full`}
+            onClick={() => setLimit((l) => l + ADMIN_PAGE_SIZE)}
+          >
+            Załaduj więcej ({Math.min(ADMIN_PAGE_SIZE, remaining)})
+          </button>
+        ) : null}
       </div>
+
     </section>
   );
 }

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useAgents, useSettings } from "@/lib/store";
+import { useAgents, useSettings, useSocialLinks } from "@/lib/store";
 
 export const Route = createFileRoute("/agenci")({
   head: () => ({
@@ -23,7 +23,11 @@ export const Route = createFileRoute("/agenci")({
 function AgenciPage() {
   const { data: agents } = useAgents();
   const { data: settings } = useSettings();
-  const discord = settings?.["discord_url"];
+  const { data: socials } = useSocialLinks();
+  // Discord bierzemy z ręcznie dodanych linków social — nic nie dodaje się automatycznie.
+  const discord = (socials ?? []).find((l) =>
+    `${l.label} ${l.icon}`.toLowerCase().includes("discord"),
+  )?.url;
   const code = settings?.["promo_code"] || "PKMR";
 
   return (
