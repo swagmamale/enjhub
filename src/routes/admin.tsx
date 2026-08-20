@@ -696,6 +696,8 @@ function ShippingTab() {
                 </p>
                 <p className="text-[11px] text-muted-foreground">
                   {r.base_price} PLN + {r.price_per_kg} PLN/kg · {r.min_weight}–{r.max_weight} kg
+                  {r.discount_percent ? ` · -${r.discount_percent}%` : ""}
+                  {r.coupon_code ? ` (${r.coupon_code})` : ""}
                 </p>
               </div>
               <button
@@ -711,6 +713,8 @@ function ShippingTab() {
                     max_weight: r.max_weight,
                     sort_order: r.sort_order,
                     price_table: r.price_table ?? {},
+                    discount_percent: r.discount_percent ?? 0,
+                    coupon_code: r.coupon_code ?? "",
                   })
                 }
               >
