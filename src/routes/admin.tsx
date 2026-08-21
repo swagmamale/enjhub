@@ -2012,3 +2012,132 @@ function LangTab() {
     </section>
   );
 }
+
+/** Masowy import produktów z CSV / TSV / Google Sheets. */
+function ImportTab() {
+  const { data: agents } = useAgents();
+  const refresh = useRefresh();
+  const [text, setText] = useState("");
+  const [sheetUrl, setSheetUrl] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  const preview = useMemo(() => rowsToProducts(parseDelimited(text)), [text]);
+
+  const loadSheet = async () => {
+    setBusy(true);
+    setMsg("Pobieram arkusz...");
+    try {
+      const { csv } = await fetchSheetCsv({ data: { url: sheetUrl.trim() } });
+      setText(csv);
+      setMsg("Arkusz wczytany — sprawdź podgląd poniżej.");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Nie udało się pobrać arkusza.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const importAll = async () => {
+    if (!preview.length) return;
+    setBusy(true);
+    setMsg(`Importuję ${preview.length} produktów...`);
+    try {
+      const rows = preview.map((p, i) => {
+        const links: Record<string, string> = {};
+        const src = extractSourceLink(p.store_url);
+        if (src) {
+          for (const a of agents ?? []) {
+            const url = convertLink(src.url, a.name, a.referral_url);
+            if (url) links[a.name] = url;
+          }
+        }
+        return { ...p, agent_links: links, display_order: i };
+      });
+      for (let i = 0; i < rows.length; i += 200) {
+        const { error } = await supabase.from("products").insert(rows.slice(i, i + 200));
+        if (error) throw error;
+      }
+      await refresh("products");
+      setMsg(`Zaimportowano ${rows.length} produktów.`);
+      setText("");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Import nie powiódł się.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="rounded-2xl border border-border bg-surface p-6">
+      <h2 className="mb-1 text-lg font-bold">Szybki import produktów</h2>
+      <p className="mb-4 text-xs text-muted-foreground">
+        Kolumny (nagłówek pierwszego wiersza): <b>title, category, price, price_cny, image_url,
+        images, qc_url, store_url, store_name, quality, batch, sizes, tiktok_url</b>. Kilka zdjęć /
+        rozmiarów oddziel przecinkiem. Działa też po polsku (nazwa, kategoria, cena, zdjecia...).
+      </p>
+
+      <div className="flex flex-wrap gap-2">
+        <input
+          className={`${input} sm:max-w-lg`}
+          placeholder="Link do Google Sheets (udostępniony publicznie) lub pliku CSV"
+          value={sheetUrl}
+          onChange={(e) => setSheetUrl(e.target.value)}
+        />
+        <button className={btn} disabled={busy} onClick={() => void loadSheet()}>
+          Wczytaj arkusz
+        </button>
+        <label className={`${btnGhost} cursor-pointer`}>
+          Wgraj plik CSV
+          <input
+            type="file"
+            accept=".csv,.tsv,text/csv,text/plain"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (file) setText(await file.text());
+              e.target.value = "";
+            }}
+          />
+        </label>
+      </div>
+
+      <textarea
+        className={`${input} mt-4 min-h-40 font-mono text-xs`}
+        placeholder="...albo wklej dane skopiowane z Excela / Google Sheets"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+      />
+
+      {preview.length ? (
+        <div className="mt-4 overflow-x-auto rounded-xl border border-border">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-secondary text-muted-foreground">
+              <tr>
+                <th className="p-2">Tytuł</th>
+                <th className="p-2">Kategoria</th>
+                <th className="p-2">Cena</th>
+                <th className="p-2">Zdjęcie</th>
+              </tr>
+            </thead>
+            <tbody>
+              {preview.slice(0, 10).map((p, i) => (
+                <tr key={`${p.title}-${i}`} className="border-t border-border">
+                  <td className="p-2">{p.title}</td>
+                  <td className="p-2">{p.category}</td>
+                  <td className="p-2">{p.price}</td>
+                  <td className="p-2 truncate max-w-[180px]">{p.image_url ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+
+      {msg ? <p className="mt-3 text-xs text-brand-cyan">{msg}</p> : null}
+      <button className={`${btn} mt-5`} disabled={busy || !preview.length} onClick={() => void importAll()}>
+        Importuj {preview.length ? `(${preview.length})` : ""}
+      </button>
+    </section>
+  );
+}
