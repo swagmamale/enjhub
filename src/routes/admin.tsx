@@ -6,6 +6,9 @@ import { ProductCard } from "@/components/ProductCard";
 import { ImageUploader } from "@/components/ImageUploader";
 import { scrapeProduct } from "@/lib/scrape.functions";
 import { DICT, DICT_KEYS, i18nSettingKey } from "@/lib/i18n";
+import { parseDelimited, rowsToProducts } from "@/lib/csvImport";
+import { fetchSheetCsv } from "@/lib/sheet.functions";
+import { translateToEnglish } from "@/lib/translate.functions";
 import {
   cnyFromPln,
   plnFromCny,
@@ -63,6 +66,7 @@ function AdminPage() {
 
     | "categories"
     | "products"
+    | "import"
     | "sellers"
     | "shipping"
     | "guide"
@@ -128,6 +132,7 @@ function AdminPage() {
     ["agents", "Agenci"],
     ["categories", "Kategorie"],
     ["products", "Produkty"],
+    ["import", "Import CSV"],
     ["sellers", "Sprzedawcy"],
     ["shipping", "Wysyłki"],
     ["guide", "Poradnik"],
@@ -173,6 +178,7 @@ function AdminPage() {
       {tab === "agents" && <AgentsTab />}
       {tab === "categories" && <CategoriesTab />}
       {tab === "products" && <ProductsTab />}
+      {tab === "import" && <ImportTab />}
       {tab === "sellers" && <SellersTab />}
       {tab === "shipping" && <ShippingTab />}
       {tab === "guide" && <GuideTab />}
