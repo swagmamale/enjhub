@@ -1976,12 +1976,32 @@ function LangTab() {
     setMsg("Zapisano tłumaczenia.");
   };
 
+  /** Tłumaczy wszystkie polskie teksty na angielski i od razu zapisuje. */
+  const autoTranslate = async () => {
+    setMsg("Tłumaczę PL → EN...");
+    try {
+      const items = rows.map((r) => ({ key: r.key, text: valueOf("pl", r.key, r.defPl) }));
+      const { translations } = await translateToEnglish({ data: { items } });
+      const next: Record<string, string> = { ...draft };
+      for (const [key, en] of Object.entries(translations)) next[i18nSettingKey("en", key)] = en;
+      await Promise.all(Object.entries(next).map(([k, v]) => saveSetting(k, v)));
+      setDraft({});
+      await refresh("settings");
+      setMsg(`Przetłumaczono i zapisano ${Object.keys(translations).length} tekstów.`);
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Tłumaczenie nie powiodło się.");
+    }
+  };
+
   return (
     <section className="rounded-2xl border border-border bg-surface p-6">
       <h2 className="mb-1 text-lg font-bold">Języki (PL / EN)</h2>
       <p className="mb-4 text-xs text-muted-foreground">
         Ustaw własne teksty dla obu wersji językowych — nagłówki, nawigacja i nazwy kategorii.
       </p>
+      <button className={`${btnGhost} mb-4`} onClick={() => void autoTranslate()}>
+        ✨ Przetłumacz automatycznie PL → EN
+      </button>
       <div className="space-y-3">
         {rows.map((r) => (
           <div key={r.key} className="grid gap-2 sm:grid-cols-[1fr_1fr_1fr] sm:items-center">
