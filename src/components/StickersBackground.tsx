@@ -54,7 +54,7 @@ export function StickersBackground() {
       .sort((a, b) => a.k - b.k)
       .map((s) => s.url)
       .slice(0, 22);
-  }, [agents]);
+  }, [agents, settings]);
 
 
   if (!stickers.length) return null;
