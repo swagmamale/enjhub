@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useAgents } from "@/lib/store";
+import { useAgents, useSettings } from "@/lib/store";
 import bbdbuy from "@/assets/stickers/bbdbuy-logo-2.webp.asset.json";
 import ootdbuy from "@/assets/stickers/0x0_4-2.png.asset.json";
 import rizzitgo from "@/assets/stickers/logo-large-_Icw0HdY-2.png.asset.json";
@@ -37,11 +37,15 @@ function rand(seed: number) {
  */
 export function StickersBackground() {
   const { data: agents } = useAgents();
+  const { data: settings } = useSettings();
 
   const stickers = useMemo(() => {
-    const raw = [...AGENT_STICKERS, ...(agents ?? []).map((a) => a.avatar_url)].filter(
-      (u): u is string => Boolean(u && u.trim()),
-    );
+    const custom = (settings?.["bg_stickers"] ?? "").split("\n");
+    const raw = [
+      ...custom,
+      ...AGENT_STICKERS,
+      ...(agents ?? []).map((a) => a.avatar_url),
+    ].filter((u): u is string => Boolean(u && u.trim()));
 
     const unique = Array.from(new Set(raw));
     // Deterministyczne tasowanie, aby układ był stabilny i różnorodny.
