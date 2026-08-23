@@ -3,7 +3,13 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductModal } from "@/components/ProductModal";
-import { useAgents, useCategories, useProducts, type Product } from "@/lib/store";
+import {
+  useAgents,
+  useCategories,
+  useProducts,
+  shuffleProducts,
+  type Product,
+} from "@/lib/store";
 import { useLang } from "@/lib/i18n";
 
 /** Ile kafelków renderujemy w jednej porcji — reszta doładowuje się na żądanie. */
@@ -41,7 +47,11 @@ function Index() {
   const [detail, setDetail] = useState<Product | null>(null);
 
   // Product Finder shows only global (admin) products — seller items live in their stores.
-  const all = useMemo(() => (products ?? []).filter((p) => !p.seller_id), [products]);
+  // Kolejność jest losowa (stała w obrębie sesji), więc nowe produkty trafiają w losowe miejsce.
+  const all = useMemo(
+    () => shuffleProducts((products ?? []).filter((p) => !p.seller_id)),
+    [products],
+  );
 
   const counts = useMemo(() => {
     const map: Record<string, number> = {};

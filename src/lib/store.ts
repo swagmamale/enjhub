@@ -447,3 +447,28 @@ export function shippingCostWithCoupon(rate: ShippingRate, kg: number): number |
 
 /** Dostępne wagi: 0.5 kg – 25 kg co pół kilograma. */
 export const WEIGHT_STEPS = Array.from({ length: 50 }, (_, i) => (i + 1) * 0.5);
+
+/** Seed losowania na sesję — kolejność jest stała podczas przeglądania, nowa po wejściu. */
+function shuffleSeed(): number {
+  const existing = safeStorage.get("shuffle_seed");
+  if (existing) return Number(existing);
+  const seed = Math.floor(Math.random() * 1e9);
+  safeStorage.set("shuffle_seed", String(seed));
+  return seed;
+}
+
+/** Deterministyczny hash id + seed — nowe produkty trafiają w losowe miejsce listy. */
+function hashOrder(id: string, seed: number): number {
+  let h = seed ^ 0x9e3779b9;
+  for (let i = 0; i < id.length; i++) {
+    h = Math.imul(h ^ id.charCodeAt(i), 0x01000193) >>> 0;
+  }
+  return h >>> 0;
+}
+
+/** Miesza listę produktów w sposób stabilny w obrębie sesji. */
+export function shuffleProducts<T extends { id: string }>(items: T[]): T[] {
+  const seed = shuffleSeed();
+  return [...items].sort((a, b) => hashOrder(a.id, seed) - hashOrder(b.id, seed));
+}
+
