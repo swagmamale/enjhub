@@ -157,7 +157,7 @@ export function convertLink(rawUrl: string, agentName: string, template?: string
     return `https://www.usfans.com/product/${USFANS_PLATFORM[parsed.platform]}/${parsed.id}?ref=5FTXZW`;
   }
   if (agent === "kakobuy" || agent === "kakaobuy") {
-    return `https://item.kakobuy.com/item/details?url=${encodeURIComponent(parsed.url)}`;
+    return `https://item.kakobuy.com/item/details?url=${encodeURIComponent(parsed.url)}&affcode=${KAKOBUY_REF}`;
   }
   if (agent === "litbuy") {
     return `https://litbuy.com/product/${LITBUY_PLATFORM[parsed.platform]}/${parsed.id}?linkSearch=true&inviteCode=PKMR`;
