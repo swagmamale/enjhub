@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useAgents, useSettings } from "@/lib/store";
 import bbdbuy from "@/assets/stickers/bbdbuy-logo-2.webp.asset.json";
 import ootdbuy from "@/assets/stickers/0x0_4-2.png.asset.json";
