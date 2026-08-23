@@ -137,6 +137,9 @@ export function extractSourceLink(raw: string): ParsedLink | null {
 }
 
 
+/** Kod polecający Kakobuy — używany we wszystkich generowanych linkach. */
+export const KAKOBUY_REF = "six7n";
+
 function normalizeAgent(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
