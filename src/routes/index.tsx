@@ -3,7 +3,13 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductModal } from "@/components/ProductModal";
-import { useAgents, useCategories, useProducts, type Product } from "@/lib/store";
+import {
+  useAgents,
+  useCategories,
+  useProducts,
+  shuffleProducts,
+  type Product,
+} from "@/lib/store";
 import { useLang } from "@/lib/i18n";
 
 /** Ile kafelków renderujemy w jednej porcji — reszta doładowuje się na żądanie. */
