@@ -192,6 +192,12 @@ function Index() {
             {t(`cat.${c.name}`, c.name)} ({counts[c.name] ?? 0})
           </button>
         ))}
+        <button
+          onClick={() => setBestOnly((v) => !v)}
+          className={`rounded-lg border px-3 py-1.5 text-xs font-bold uppercase tracking-wide ${bestOnly ? "border-primary text-primary glow-ring" : "border-border text-muted-foreground"}`}
+        >
+          {t("finder.bestOnly", "Best batch only")} ({bestCount})
+        </button>
       </div>
 
       {filtered.length === 0 ? (
