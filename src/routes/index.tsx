@@ -159,17 +159,43 @@ function Index() {
             className={`${inputCls} mt-1`}
           />
         </label>
-        <button
-          onClick={() => {
-            setQ("");
-            setCat("");
-            setMin("");
-            setMax("");
-          }}
-          className="rounded-xl border border-border px-4 py-3 text-xs font-bold uppercase tracking-wide text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-        >
-          {t("finder.clear")}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <label
+            className={`flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-3 text-xs font-bold uppercase tracking-wide transition-colors ${bestOnly ? "border-primary text-primary glow-ring" : "border-border text-muted-foreground hover:border-primary"}`}
+          >
+            <input
+              type="checkbox"
+              checked={bestOnly}
+              onChange={(e) => setBestOnly(e.target.checked)}
+              className="accent-primary"
+            />
+            {t("finder.bestOnly", "Best batch only")} ({bestCount})
+          </label>
+          <label
+            className={`flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-3 text-xs font-bold uppercase tracking-wide transition-colors ${girlOnly ? "border-primary text-primary glow-ring" : "border-border text-muted-foreground hover:border-primary"}`}
+          >
+            <input
+              type="checkbox"
+              checked={girlOnly}
+              onChange={(e) => setGirlOnly(e.target.checked)}
+              className="accent-primary"
+            />
+            👛 {t("finder.girlZone", "Girl Zone")} ({girlCount})
+          </label>
+          <button
+            onClick={() => {
+              setQ("");
+              setCat("");
+              setMin("");
+              setMax("");
+              setBestOnly(false);
+              setGirlOnly(false);
+            }}
+            className="rounded-xl border border-border px-4 py-3 text-xs font-bold uppercase tracking-wide text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+          >
+            {t("finder.clear")}
+          </button>
+        </div>
       </div>
 
       <h2 className="mb-4 text-lg font-bold">
