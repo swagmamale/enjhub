@@ -74,19 +74,21 @@ function Index() {
         p.title.toLowerCase().includes(q.toLowerCase()) &&
         (cat === "" || p.category === cat) &&
         (!bestOnly || isBest(p)) &&
+        (!girlOnly || p.for_women) &&
         Number(p.price) >= lo &&
         Number(p.price) <= hi,
     );
-  }, [all, q, cat, min, max, bestOnly]);
+  }, [all, q, cat, min, max, bestOnly, girlOnly]);
 
   const bestCount = useMemo(() => all.filter(isBest).length, [all]);
+  const girlCount = useMemo(() => all.filter((p) => p.for_women).length, [all]);
 
   const [limit, setLimit] = useState(PAGE_SIZE);
 
   // Każda zmiana filtrów zaczyna listę od pierwszej porcji.
   useEffect(() => {
     setLimit(PAGE_SIZE);
-  }, [q, cat, min, max, bestOnly]);
+  }, [q, cat, min, max, bestOnly, girlOnly]);
 
   const visible = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
   const remaining = filtered.length - visible.length;
