@@ -1170,6 +1170,7 @@ function ProductsTab() {
     tiktok_url: form.tiktok_url || null,
     price_cny: cnyFromPln(Number(form.price) || 0),
     promoted: form.promoted,
+    for_women: form.for_women,
     store_url: form.store_url ?? "",
     store_name: form.store_name ?? "",
   };
