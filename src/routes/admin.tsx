@@ -1136,6 +1136,7 @@ function ProductsTab() {
       tiktok_url: form.tiktok_url || null,
       display_order: Number(form.display_order) || 0,
       promoted: form.promoted,
+      for_women: form.for_women,
       price_cny: Math.round(cnyFromPln(Number(form.price) || 0) * 100) / 100,
       likes: Number(form.likes) || 0,
       dislikes: Number(form.dislikes) || 0,
