@@ -1527,6 +1527,7 @@ function ProductsTab() {
                     tiktok_url: p.tiktok_url ?? "",
                     display_order: p.display_order ?? 0,
                     promoted: p.promoted,
+                    for_women: p.for_women,
                     likes: p.likes,
                     dislikes: p.dislikes,
                     views: p.views,
