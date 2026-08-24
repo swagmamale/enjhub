@@ -100,6 +100,7 @@ export type Database = {
           created_at: string
           dislikes: number
           display_order: number
+          for_women: boolean
           id: string
           image_url: string | null
           images: string[]
@@ -124,6 +125,7 @@ export type Database = {
           created_at?: string
           dislikes?: number
           display_order?: number
+          for_women?: boolean
           id?: string
           image_url?: string | null
           images?: string[]
@@ -148,6 +150,7 @@ export type Database = {
           created_at?: string
           dislikes?: number
           display_order?: number
+          for_women?: boolean
           id?: string
           image_url?: string | null
           images?: string[]

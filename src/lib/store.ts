@@ -37,6 +37,8 @@ export type Product = {
   tiktok_url: string | null;
   price_cny: number;
   promoted: boolean;
+  /** Girl Zone — produkt oznaczony jako damski. */
+  for_women: boolean;
   store_url: string;
   store_name: string;
 };
@@ -227,6 +229,7 @@ export const useProducts = () =>
           display_order: p.display_order ?? 0,
           price_cny: Number(p.price_cny ?? 0),
           promoted: Boolean(p.promoted),
+          for_women: Boolean((p as { for_women?: boolean }).for_women),
           store_url: p.store_url ?? "",
           store_name: p.store_name ?? "",
         };

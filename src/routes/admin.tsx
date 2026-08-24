@@ -1002,6 +1002,7 @@ function ProductsTab() {
     tiktok_url: "",
     display_order: 0,
     promoted: false,
+    for_women: false,
     likes: 0,
     dislikes: 0,
     views: 0,
@@ -1135,6 +1136,7 @@ function ProductsTab() {
       tiktok_url: form.tiktok_url || null,
       display_order: Number(form.display_order) || 0,
       promoted: form.promoted,
+      for_women: form.for_women,
       price_cny: Math.round(cnyFromPln(Number(form.price) || 0) * 100) / 100,
       likes: Number(form.likes) || 0,
       dislikes: Number(form.dislikes) || 0,
@@ -1168,6 +1170,7 @@ function ProductsTab() {
     tiktok_url: form.tiktok_url || null,
     price_cny: cnyFromPln(Number(form.price) || 0),
     promoted: form.promoted,
+    for_women: form.for_women,
     store_url: form.store_url ?? "",
     store_name: form.store_name ?? "",
   };
@@ -1380,6 +1383,14 @@ function ProductsTab() {
               />
               Promowany
             </label>
+            <label className="flex items-end gap-2 text-xs font-semibold text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={form.for_women}
+                onChange={(e) => setForm({ ...form, for_women: e.target.checked })}
+              />
+              👛 Girl Zone (dla kobiet)
+            </label>
           </div>
 
           <h3 className="mt-5 text-xs font-bold uppercase tracking-wide text-muted-foreground">
@@ -1516,6 +1527,7 @@ function ProductsTab() {
                     tiktok_url: p.tiktok_url ?? "",
                     display_order: p.display_order ?? 0,
                     promoted: p.promoted,
+                    for_women: p.for_women,
                     likes: p.likes,
                     dislikes: p.dislikes,
                     views: p.views,
