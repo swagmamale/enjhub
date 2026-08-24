@@ -44,6 +44,7 @@ function Index() {
   const [cat, setCat] = useState("");
   const [min, setMin] = useState("");
   const [max, setMax] = useState("");
+  const [bestOnly, setBestOnly] = useState(false);
   const [detail, setDetail] = useState<Product | null>(null);
 
   // Product Finder shows only global (admin) products — seller items live in their stores.
