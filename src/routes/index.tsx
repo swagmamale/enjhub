@@ -15,6 +15,11 @@ import { useLang } from "@/lib/i18n";
 /** Ile kafelków renderujemy w jednej porcji — reszta doładowuje się na żądanie. */
 const PAGE_SIZE = 48;
 
+/** „Best batch” / „Best” — jakość lub batch produktu zawiera słowo „best”. */
+function isBest(p: Product) {
+  return `${p.quality ?? ""} ${p.batch ?? ""}`.toLowerCase().includes("best");
+}
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -44,6 +49,7 @@ function Index() {
   const [cat, setCat] = useState("");
   const [min, setMin] = useState("");
   const [max, setMax] = useState("");
+  const [bestOnly, setBestOnly] = useState(false);
   const [detail, setDetail] = useState<Product | null>(null);
 
   // Product Finder shows only global (admin) products — seller items live in their stores.
@@ -66,17 +72,20 @@ function Index() {
       (p) =>
         p.title.toLowerCase().includes(q.toLowerCase()) &&
         (cat === "" || p.category === cat) &&
+        (!bestOnly || isBest(p)) &&
         Number(p.price) >= lo &&
         Number(p.price) <= hi,
     );
-  }, [all, q, cat, min, max]);
+  }, [all, q, cat, min, max, bestOnly]);
+
+  const bestCount = useMemo(() => all.filter(isBest).length, [all]);
 
   const [limit, setLimit] = useState(PAGE_SIZE);
 
   // Każda zmiana filtrów zaczyna listę od pierwszej porcji.
   useEffect(() => {
     setLimit(PAGE_SIZE);
-  }, [q, cat, min, max]);
+  }, [q, cat, min, max, bestOnly]);
 
   const visible = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
   const remaining = filtered.length - visible.length;
@@ -183,6 +192,12 @@ function Index() {
             {t(`cat.${c.name}`, c.name)} ({counts[c.name] ?? 0})
           </button>
         ))}
+        <button
+          onClick={() => setBestOnly((v) => !v)}
+          className={`rounded-lg border px-3 py-1.5 text-xs font-bold uppercase tracking-wide ${bestOnly ? "border-primary text-primary glow-ring" : "border-border text-muted-foreground"}`}
+        >
+          {t("finder.bestOnly", "Best batch only")} ({bestCount})
+        </button>
       </div>
 
       {filtered.length === 0 ? (
