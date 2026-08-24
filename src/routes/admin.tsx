@@ -1002,6 +1002,7 @@ function ProductsTab() {
     tiktok_url: "",
     display_order: 0,
     promoted: false,
+    for_women: false,
     likes: 0,
     dislikes: 0,
     views: 0,
