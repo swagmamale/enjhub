@@ -37,6 +37,8 @@ export type Product = {
   tiktok_url: string | null;
   price_cny: number;
   promoted: boolean;
+  /** Girl Zone — produkt oznaczony jako damski. */
+  for_women: boolean;
   store_url: string;
   store_name: string;
 };
