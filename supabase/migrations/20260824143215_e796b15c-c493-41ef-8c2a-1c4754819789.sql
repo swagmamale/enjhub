@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS for_women boolean NOT NULL DEFAULT false;
