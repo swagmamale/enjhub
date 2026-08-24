@@ -1383,6 +1383,14 @@ function ProductsTab() {
               />
               Promowany
             </label>
+            <label className="flex items-end gap-2 text-xs font-semibold text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={form.for_women}
+                onChange={(e) => setForm({ ...form, for_women: e.target.checked })}
+              />
+              👛 Girl Zone (dla kobiet)
+            </label>
           </div>
 
           <h3 className="mt-5 text-xs font-bold uppercase tracking-wide text-muted-foreground">
