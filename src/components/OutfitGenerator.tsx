@@ -21,9 +21,14 @@ const buildSlots = (withJackets: boolean): { key: SlotKey; label: string; match:
 
 const SLOT_KEYS: SlotKey[] = ["shoes", "bottoms", "tops", "acc"];
 
-function pickPool(products: Product[], slot: (typeof SLOTS)[number]) {
+function pickPool(
+  products: Product[],
+  slot: { key: SlotKey; match: string[] },
+  withJackets: boolean,
+) {
   return products.filter((p) => {
     const c = (p.category || "").toLowerCase();
+    if (slot.key === "tops" && !withJackets && JACKET_MATCH.some((m) => c.includes(m))) return false;
     return slot.match.some((m) => c.includes(m));
   });
 }
