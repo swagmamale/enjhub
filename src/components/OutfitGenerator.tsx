@@ -5,12 +5,21 @@ import { useLang } from "@/lib/i18n";
 
 type SlotKey = "shoes" | "bottoms" | "tops" | "acc";
 
-const SLOTS: { key: SlotKey; label: string; match: string[] }[] = [
+/** Kurtki są opcjonalne — domyślnie losujemy tylko koszulki i bluzy. */
+const JACKET_MATCH = ["kurtk", "jacket", "puff", "coat"];
+
+const buildSlots = (withJackets: boolean): { key: SlotKey; label: string; match: string[] }[] => [
   { key: "shoes", label: "Buty", match: ["but", "shoe", "sneak"] },
   { key: "bottoms", label: "Spodnie", match: ["spodni", "bottom", "pant", "short", "jean"] },
-  { key: "tops", label: "Koszulka / Bluza", match: ["koszul", "bluz", "top", "hood", "tee", "kurtk", "jacket"] },
+  {
+    key: "tops",
+    label: withJackets ? "Koszulka / Bluza / Kurtka" : "Koszulka / Bluza",
+    match: ["koszul", "bluz", "top", "hood", "tee", ...(withJackets ? JACKET_MATCH : [])],
+  },
   { key: "acc", label: "Czapka / Akcesoria", match: ["czap", "akces", "head", "cap", "hat", "zegar", "accessor"] },
 ];
+
+const SLOT_KEYS: SlotKey[] = ["shoes", "bottoms", "tops", "acc"];
 
 function pickPool(products: Product[], slot: (typeof SLOTS)[number]) {
   return products.filter((p) => {
