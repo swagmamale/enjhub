@@ -100,17 +100,39 @@ export function OutfitGenerator({
             {t("outfit.desc")}
           </p>
         </div>
-        <button
-          onClick={rollAll}
-          disabled={spinning}
-          className="rounded-xl gradient-brand px-6 py-3 text-sm font-extrabold uppercase tracking-wide text-surface-deep disabled:opacity-60"
-        >
-          {spinning ? t("outfit.rolling") : hasResult ? t("outfit.rollAgain") : t("outfit.roll")}
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={withJackets}
+            onClick={() => setWithJackets((v) => !v)}
+            className={`flex items-center gap-2.5 rounded-xl border px-4 py-3 text-xs font-bold uppercase tracking-wide transition-all ${
+              withJackets
+                ? "border-primary bg-primary/10 text-primary glow-ring"
+                : "border-border text-muted-foreground hover:border-primary/60"
+            }`}
+          >
+            <span
+              className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border transition-all ${
+                withJackets ? "border-primary bg-primary text-surface-deep" : "border-border"
+              }`}
+            >
+              {withJackets ? "✓" : ""}
+            </span>
+            🧥 {t("outfit.withJackets", "Kurtki też")}
+          </button>
+          <button
+            onClick={rollAll}
+            disabled={spinning}
+            className="rounded-xl gradient-brand px-6 py-3 text-sm font-extrabold uppercase tracking-wide text-surface-deep disabled:opacity-60"
+          >
+            {spinning ? t("outfit.rolling") : hasResult ? t("outfit.rollAgain") : t("outfit.roll")}
+          </button>
+        </div>
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {SLOTS.map((slot) => {
+        {slots.map((slot) => {
           const item = outfit[slot.key] ?? null;
           const empty = pools.find((p) => p.slot.key === slot.key)?.items.length === 0;
           return (
