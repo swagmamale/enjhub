@@ -5,30 +5,16 @@ import { useLang } from "@/lib/i18n";
 
 type SlotKey = "shoes" | "bottoms" | "tops" | "acc";
 
-/** Kurtki są opcjonalne — domyślnie losujemy tylko koszulki i bluzy. */
-const JACKET_MATCH = ["kurtk", "jacket", "puff", "coat"];
-
-const buildSlots = (withJackets: boolean): { key: SlotKey; label: string; match: string[] }[] => [
+const SLOTS: { key: SlotKey; label: string; match: string[] }[] = [
   { key: "shoes", label: "Buty", match: ["but", "shoe", "sneak"] },
   { key: "bottoms", label: "Spodnie", match: ["spodni", "bottom", "pant", "short", "jean"] },
-  {
-    key: "tops",
-    label: withJackets ? "Koszulka / Bluza / Kurtka" : "Koszulka / Bluza",
-    match: ["koszul", "bluz", "top", "hood", "tee", ...(withJackets ? JACKET_MATCH : [])],
-  },
+  { key: "tops", label: "Koszulka / Bluza", match: ["koszul", "bluz", "top", "hood", "tee", "kurtk", "jacket"] },
   { key: "acc", label: "Czapka / Akcesoria", match: ["czap", "akces", "head", "cap", "hat", "zegar", "accessor"] },
 ];
 
-const SLOT_KEYS: SlotKey[] = ["shoes", "bottoms", "tops", "acc"];
-
-function pickPool(
-  products: Product[],
-  slot: { key: SlotKey; match: string[] },
-  withJackets: boolean,
-) {
+function pickPool(products: Product[], slot: (typeof SLOTS)[number]) {
   return products.filter((p) => {
     const c = (p.category || "").toLowerCase();
-    if (slot.key === "tops" && !withJackets && JACKET_MATCH.some((m) => c.includes(m))) return false;
     return slot.match.some((m) => c.includes(m));
   });
 }
@@ -50,18 +36,16 @@ export function OutfitGenerator({
   onDetails?: (p: Product) => void;
 }) {
   const { t } = useLang();
-  const [withJackets, setWithJackets] = useState(false);
-  const slots = useMemo(() => buildSlots(withJackets), [withJackets]);
   const pools = useMemo(
-    () => slots.map((slot) => ({ slot, items: pickPool(products, slot, withJackets) })),
-    [products, slots, withJackets],
+    () => SLOTS.map((slot) => ({ slot, items: pickPool(products, slot) })),
+    [products],
   );
   const [outfit, setOutfit] = useState<Partial<Record<SlotKey, Product | null>>>({});
   const [spinning, setSpinning] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const total = SLOT_KEYS.reduce((sum, k) => sum + Number(outfit[k]?.price ?? 0), 0);
-  const hasResult = SLOT_KEYS.some((k) => outfit[k]);
+  const total = SLOTS.reduce((sum, s) => sum + Number(outfit[s.key]?.price ?? 0), 0);
+  const hasResult = SLOTS.some((s) => outfit[s.key]);
 
   const rollAll = () => {
     if (spinning) return;
@@ -100,39 +84,17 @@ export function OutfitGenerator({
             {t("outfit.desc")}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={withJackets}
-            onClick={() => setWithJackets((v) => !v)}
-            className={`flex items-center gap-2.5 rounded-xl border px-4 py-3 text-xs font-bold uppercase tracking-wide transition-all ${
-              withJackets
-                ? "border-primary bg-primary/10 text-primary glow-ring"
-                : "border-border text-muted-foreground hover:border-primary/60"
-            }`}
-          >
-            <span
-              className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border transition-all ${
-                withJackets ? "border-primary bg-primary text-surface-deep" : "border-border"
-              }`}
-            >
-              {withJackets ? "✓" : ""}
-            </span>
-            🧥 {t("outfit.withJackets", "Kurtki też")}
-          </button>
-          <button
-            onClick={rollAll}
-            disabled={spinning}
-            className="rounded-xl gradient-brand px-6 py-3 text-sm font-extrabold uppercase tracking-wide text-surface-deep disabled:opacity-60"
-          >
-            {spinning ? t("outfit.rolling") : hasResult ? t("outfit.rollAgain") : t("outfit.roll")}
-          </button>
-        </div>
+        <button
+          onClick={rollAll}
+          disabled={spinning}
+          className="rounded-xl gradient-brand px-6 py-3 text-sm font-extrabold uppercase tracking-wide text-surface-deep disabled:opacity-60"
+        >
+          {spinning ? t("outfit.rolling") : hasResult ? t("outfit.rollAgain") : t("outfit.roll")}
+        </button>
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {slots.map((slot) => {
+        {SLOTS.map((slot) => {
           const item = outfit[slot.key] ?? null;
           const empty = pools.find((p) => p.slot.key === slot.key)?.items.length === 0;
           return (
