@@ -50,16 +50,18 @@ export function OutfitGenerator({
   onDetails?: (p: Product) => void;
 }) {
   const { t } = useLang();
+  const [withJackets, setWithJackets] = useState(false);
+  const slots = useMemo(() => buildSlots(withJackets), [withJackets]);
   const pools = useMemo(
-    () => SLOTS.map((slot) => ({ slot, items: pickPool(products, slot) })),
-    [products],
+    () => slots.map((slot) => ({ slot, items: pickPool(products, slot, withJackets) })),
+    [products, slots, withJackets],
   );
   const [outfit, setOutfit] = useState<Partial<Record<SlotKey, Product | null>>>({});
   const [spinning, setSpinning] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const total = SLOTS.reduce((sum, s) => sum + Number(outfit[s.key]?.price ?? 0), 0);
-  const hasResult = SLOTS.some((s) => outfit[s.key]);
+  const total = SLOT_KEYS.reduce((sum, k) => sum + Number(outfit[k]?.price ?? 0), 0);
+  const hasResult = SLOT_KEYS.some((k) => outfit[k]);
 
   const rollAll = () => {
     if (spinning) return;
