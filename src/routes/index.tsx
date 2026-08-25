@@ -163,28 +163,18 @@ function Index() {
           />
         </label>
         <div className="flex flex-wrap items-center gap-2">
-          <label
-            className={`flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-3 text-xs font-bold uppercase tracking-wide transition-colors ${bestOnly ? "border-primary text-primary glow-ring" : "border-border text-muted-foreground hover:border-primary"}`}
-          >
-            <input
-              type="checkbox"
-              checked={bestOnly}
-              onChange={(e) => setBestOnly(e.target.checked)}
-              className="accent-primary"
-            />
-            {t("finder.bestOnly", "Best batch only")} ({bestCount})
-          </label>
-          <label
-            className={`flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-3 text-xs font-bold uppercase tracking-wide transition-colors ${girlOnly ? "border-primary text-primary glow-ring" : "border-border text-muted-foreground hover:border-primary"}`}
-          >
-            <input
-              type="checkbox"
-              checked={girlOnly}
-              onChange={(e) => setGirlOnly(e.target.checked)}
-              className="accent-primary"
-            />
-            👛 {t("finder.girlZone", "Girl Zone")} ({girlCount})
-          </label>
+          <FilterToggle
+            active={bestOnly}
+            onToggle={() => setBestOnly((v) => !v)}
+            label={`⭐ ${t("finder.bestOnly", "Best batch only")}`}
+            count={bestCount}
+          />
+          <FilterToggle
+            active={girlOnly}
+            onToggle={() => setGirlOnly((v) => !v)}
+            label={`👛 ${t("finder.girlZone", "Girl Zone")}`}
+            count={girlCount}
+          />
           <button
             onClick={() => {
               setQ("");
